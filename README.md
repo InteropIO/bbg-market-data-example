@@ -1,5 +1,7 @@
 # bbg-market-data examples
 
+![](./bbg-market-data-examples.png)
+
 The repository contains a simple application that demonstrates the usage of [@glue42/bbg-market-data](https://www.npmjs.com/package/@glue42/bbg-market-data).
 The application allows selection of any request available from @glue42/bbg-market-data, opening the selected request and logging in the console - data, errors, bloomberg event and request status.
 Logs are prefixed as follow:
