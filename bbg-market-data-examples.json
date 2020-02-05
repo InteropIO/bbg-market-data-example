@@ -1,0 +1,13 @@
+[
+  {
+    "title": "BBG Market Data Examples",
+    "type": "window",
+    "name": "bbg-market-data-examples",
+    "details": {
+      "url": "http://localhost:3000",
+      "allowCollapse": false,
+      "startLocation": "center"
+    },
+    "allowMultiple": false
+  }
+]

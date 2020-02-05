@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" http-equiv="CACHE-CONTROL" content="NO-CACHE" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>JS Bloomberg Request Web Client</title>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row flex-xl-nowrap">
+      <div class="col-12">
+        <div class="card mb-3">
+          <div class="card-body">
+            <form action="" class="form-inline">
+              <div class="form-group">
+                <select id="request-type" class="custom-select" placeholder="Select Request Type">
+                </select>
+              </div>
+
+              <button type="button" id="btn-open" class="btn btn-primary">Open</button>
+              <button type="button" id="btn-close" class="btn btn-primary">Close</button>
+              <button type="button" id="btn-clear" class="btn btn-primary">Clear Editors</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row flex-xl-nowrap">
+      <main class="col-12" id="content">
+        <div class="mb-2">
+          <h4>Request Arguments</h4>
+          <div id="jsoneditor-request"></div>
+        </div>
+
+        <div class="mb-2">
+          <h4>
+            Response / Request Status: <span id="request-status"></span>
+          </h4>
+          <div id="jsoneditor-response"></div>
+        </div>
+
+        <div class="mb-2">
+          <h4>Error</h4>
+          <div id="jsoneditor-error"></div>
+        </div>
+
+        <div class="mb-2">
+          <h4>Event</h4>
+          <div id="jsoneditor-events"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+</body>
+
+</html>
