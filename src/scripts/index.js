@@ -126,7 +126,6 @@ function onClearEditors() {
   errorEditor.set({});
   eventsEditor.set({});
 
-  onRequestTypeChange();
   statusHandler('');
 }
 

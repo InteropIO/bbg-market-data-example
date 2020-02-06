@@ -14,7 +14,7 @@
     "@glue42/desktop": "^4.7.1",
     "bootstrap": "^4.4.1",
     "jquery": "^3.4.1",
-    "jsoneditor": "^8.1.2"
+    "jsoneditor": "^6.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.7.7",
