@@ -10,13 +10,14 @@ export const editorOptions = {
 
 export function createRequest(lib, type, args) {
   switch (type) {
-    case RequestType.MarketSubscription: return lib.createMarketSubscriptionRequest(args)
+    case RequestType.MarketSubscription: return lib.createMarketDataRequest(args)
     case RequestType.HistoricalData: return lib.createHistoricalDataRequest(args)
     case RequestType.ReferenceData: return lib.createReferenceDataRequest(args)
     case RequestType.IntraDayBar: return lib.createIntraDayBarRequest(args)
     case RequestType.InstrumentList: return lib.createInstrumentListRequest(args)
     case RequestType.Snapshot: return lib.createSnapshotRequest(args)
     case RequestType.FieldSearch: return lib.createFieldSearchRequest(args)
+    case RequestType.FieldList: return lib.createFieldListRequest(args)
     case RequestType.UserEntitlements: return lib.createUserEntitlementsRequest(args)
 
     default:

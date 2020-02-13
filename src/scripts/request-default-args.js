@@ -50,6 +50,12 @@ function snapshotArgs() {
 
 function fieldSearchArgs() {
   return {
+    searchSpec: 'last price'
+  };
+}
+
+function fieldListArgs() {
+  return {
     fieldType: 'RealTime',
     returnFieldDocumentation: true
   };
@@ -85,6 +91,7 @@ export function getDefaultArgs(requestType) {
     case RequestType.InstrumentList: return instrumentListArgs();
     case RequestType.Snapshot: return snapshotArgs();
     case RequestType.FieldSearch: return fieldSearchArgs();
+    case RequestType.FieldList: return fieldListArgs();
     case RequestType.UserEntitlements: return userEntitlementsArgs();
 
     default:

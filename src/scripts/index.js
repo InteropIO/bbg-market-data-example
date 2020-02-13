@@ -5,7 +5,7 @@ require('bootstrap/dist/js/bootstrap.bundle');
 
 import JSONEditor from 'jsoneditor';
 import Glue from "@glue42/desktop";
-import JsBBG from '@glue42/bbg-market-data';
+import BBGMarketData, { Session } from '@glue42/bbg-market-data';
 import { RequestType } from '@glue42/bbg-market-data/dist/cjs/request-types'
 
 import { getDefaultArgs } from './request-default-args';
@@ -43,7 +43,7 @@ const initGlueCore = () => Glue()
     throw err;
   });
 
-const initJsBBG = (interop) => JsBBG(interop, { debug: true });
+const initBBGMarketData = (interop) => BBGMarketData(interop, { debug: true });
 
 function eventHandler(event) {
   console.log('[ON EVENT] ', event);
@@ -88,8 +88,8 @@ function openSubscriptionRequest(request) {
   // Listen for request status
   unsubscribeCallbacks.push(request.onStatus(statusHandler));
 
-  // Send the request to Bloomberg.
-  request.open();
+  // Send the request to Bloomberg. Explicitly states the default session for subscription requests - RealTime.
+  request.open({ session: Session.RealTime });
 }
 
 function openNonSubscriptionRequest(request) {
@@ -105,8 +105,8 @@ function openNonSubscriptionRequest(request) {
   // Listen for request status
   unsubscribeCallbacks.push(request.onStatus(statusHandler));
 
-  // Send the request to Bloomberg and wait for aggregated response
-  request.open({ aggregateResponse: true })
+  // Send the request to Bloomberg and wait for aggregated response. Explicitly states that the default session should be used.
+  request.open({ aggregateResponse: true, session: Session.Default })
     .then((response) => {
       responseEditor.set(response);
       console.log('[RESPONSE]', response);
@@ -114,7 +114,6 @@ function openNonSubscriptionRequest(request) {
       console.error('[RESPONSE ERROR] ', err);
     });
 }
-
 
 function onRequestTypeChange() {
   const requestType = requestTypeSelect.options[requestTypeSelect.selectedIndex].value
@@ -139,6 +138,7 @@ function onOpenRequest() {
 
   currentRequest = createRequest(lib, requestType, requestArgs);
 
+  window.bbgRequest = currentRequest;
   if (RequestType.MarketSubscription === requestType) {
     openSubscriptionRequest(currentRequest)
   } else {
@@ -155,7 +155,8 @@ function onCloseRequest() {
 
 async function init() {
   const glueCore = await initGlueCore();
-  lib = initJsBBG(glueCore.interop);
+  lib = initBBGMarketData(glueCore.interop);
+  window.bbgMarketData = lib;
 
   onRequestTypeChange();
 
