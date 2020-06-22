@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/polyfill": "^7.7.0",
-    "@glue42/bbg-market-data": "0.0.1-alpha.4",
+    "@glue42/bbg-market-data": "0.0.1-alpha.7",
     "@glue42/desktop": "^4.7.1",
     "bootstrap": "^4.4.1",
     "jquery": "^3.4.1",

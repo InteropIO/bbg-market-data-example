@@ -43,7 +43,7 @@ const initGlueCore = () => Glue()
     throw err;
   });
 
-const initBBGMarketData = (interop) => BBGMarketData(interop, { debug: true });
+const initBBGMarketData = (interop) => BBGMarketData(interop, { debug: true, connectionPeriodMsecs: 6 * 1000 });
 
 function eventHandler(event) {
   console.log('[ON EVENT] ', event);
@@ -158,6 +158,7 @@ async function init() {
   lib = initBBGMarketData(glueCore.interop);
   window.bbgMarketData = lib;
 
+  lib.onConnectionStatusChanged((status) => console.warn('Connection Status: ', status));
   onRequestTypeChange();
 
   openRequestBtn.addEventListener('click', onOpenRequest);
