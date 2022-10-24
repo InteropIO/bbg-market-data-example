@@ -9,41 +9,81 @@ import BBGMarketData, { Session } from '@glue42/bbg-market-data';
 import { RequestType } from '@glue42/bbg-market-data/dist/cjs/request-types'
 
 import { getDefaultArgs } from './request-default-args';
-import { createRequest, fillRequestTypeOptions, editorOptions } from './helpers';
 
-const containerRequest = document.getElementById('jsoneditor-request');
-const containerResponse = document.getElementById('jsoneditor-response');
-const containerError = document.getElementById('jsoneditor-error');
-const containerEvents = document.getElementById('jsoneditor-events');
+window.addEventListener('DOMContentLoaded', () => {
+  // Entry point.
+  start();
+});
 
-const openRequestBtn = document.getElementById('btn-open');
-const closeRequestBtn = document.getElementById('btn-close');
-const clearEditorsBtn = document.getElementById('btn-clear');
-const requestTypeSelect = document.getElementById('request-type');
-const requestStatusText = document.getElementById('request-status');
+let containerRequest;
+let containerResponse;
+let containerError;
+let containerEvents;
+let openRequestBtn;
+let closeRequestBtn;
+let clearEditorsBtn;
+let requestTypeSelect;
+let requestStatusText;
+let requestArgsEditor;
+let responseEditor;
+let errorEditor;
+let eventsEditor;
+let connectionStatus;
 
-const requestArgsEditor = new JSONEditor(containerRequest, editorOptions);
-const responseEditor = new JSONEditor(containerResponse, editorOptions);
-const errorEditor = new JSONEditor(containerError, editorOptions);
-const eventsEditor = new JSONEditor(containerEvents, editorOptions);
-
-let lib;
+let bbgMarketData;
 let currentRequest;
 const unsubscribeCallbacks = [];
 
-const initGlueCore = () => Glue()
-  .then((glue) => {
-    console.log(`Glue ${glue.version} initialized.`);
+async function start() {
+  const glue = await Glue();
+  window.glue = glue;
+  console.log(`Glue42 initialized. Version: ${glue.version}`);
 
-    window.glueCore = glue;
-    return glue;
-  })
-  .catch((err) => {
-    console.error('Glue initialization failed ', err);
-    throw err;
+  bbgMarketData = BBGMarketData(glue.interop, { connectionPeriodMsecs: 6 * 1000 });
+  window.bbgMarketData = bbgMarketData;
+  console.log(`BBG Market Data initialized. Version: ${bbgMarketData.version}`);
+
+  bindUI();
+  fillRequestTypeOptions(requestTypeSelect);
+
+  bbgMarketData.onConnectionStatusChanged((status) => {
+    console.log('Connection Status: ', status)
+    connectionStatus.innerHTML = status;
   });
 
-const initBBGMarketData = (interop) => BBGMarketData(interop, { debug: true, connectionPeriodMsecs: 6 * 1000 });
+  onRequestTypeChange();
+
+  openRequestBtn.addEventListener('click', openRequest);
+  closeRequestBtn.addEventListener('click', closeRequest);
+  clearEditorsBtn.addEventListener('click', onClearEditors);
+  requestTypeSelect.addEventListener('change', onRequestTypeChange);
+}
+
+function bindUI() {
+  openRequestBtn = document.getElementById('btn-open');
+  closeRequestBtn = document.getElementById('btn-close');
+  clearEditorsBtn = document.getElementById('btn-clear');
+  requestTypeSelect = document.getElementById('request-type');
+  requestStatusText = document.getElementById('request-status');
+  connectionStatus = document.getElementById('connection-status');
+
+  containerRequest = document.getElementById('jsoneditor-request-args');
+  containerResponse = document.getElementById('jsoneditor-response');
+  containerError = document.getElementById('jsoneditor-error');
+  containerEvents = document.getElementById('jsoneditor-events');
+
+  const editorOptions = {
+    mode: 'code',
+    modes: ['code', 'tree'],
+    onError: function (err) {
+      alert(err.toString())
+    },
+  };
+  requestArgsEditor = new JSONEditor(containerRequest, editorOptions);
+  responseEditor = new JSONEditor(containerResponse, editorOptions);
+  errorEditor = new JSONEditor(containerError, editorOptions);
+  eventsEditor = new JSONEditor(containerEvents, editorOptions);
+}
 
 function eventHandler(event) {
   console.log('[ON EVENT] ', event);
@@ -128,17 +168,24 @@ function onClearEditors() {
   statusHandler('');
 }
 
-function onOpenRequest() {
-  onClearEditors();
+async function closeRequest() {
+  if (currentRequest != null) {
+    await currentRequest.close()
+  }
+}
 
+async function openRequest() {
+  onClearEditors();
   unsubscribeCallbacks.forEach(cb => cb());
+
+  await closeRequest()
 
   const requestArgs = requestArgsEditor.get();
   const requestType = requestTypeSelect.options[requestTypeSelect.selectedIndex].value
 
-  currentRequest = createRequest(lib, requestType, requestArgs);
+  currentRequest = createRequest(requestType, requestArgs);
+  window.currentRequest = currentRequest;
 
-  window.bbgRequest = currentRequest;
   if (RequestType.MarketSubscription === requestType) {
     openSubscriptionRequest(currentRequest)
   } else {
@@ -146,26 +193,35 @@ function onOpenRequest() {
   }
 }
 
-function onCloseRequest() {
-  if (currentRequest) {
-    currentRequest.close()
-      .then(console.log, console.warn)
+function createRequest(requestType, requestArgs) {
+  console.log(`Create request of type ${requestType} with arguments: ${JSON.stringify(requestArgs)}`);
+
+  switch (requestType) {
+    case RequestType.MarketSubscription: return bbgMarketData.createMarketDataRequest(requestArgs)
+    case RequestType.HistoricalData: return bbgMarketData.createHistoricalDataRequest(requestArgs)
+    case RequestType.ReferenceData: return bbgMarketData.createReferenceDataRequest(requestArgs)
+    case RequestType.IntraDayBar: return bbgMarketData.createIntraDayBarRequest(requestArgs)
+    case RequestType.InstrumentList: return bbgMarketData.createInstrumentListRequest(requestArgs)
+    case RequestType.Snapshot: return bbgMarketData.createSnapshotRequest(requestArgs)
+    case RequestType.FieldSearch: return bbgMarketData.createFieldSearchRequest(requestArgs)
+    case RequestType.FieldList: return bbgMarketData.createFieldListRequest(requestArgs)
+    case RequestType.UserEntitlements: return bbgMarketData.createUserEntitlementsRequest(requestArgs)
+    default:
+      throw new Error('Unknown request type ' + requestType);
   }
 }
 
-async function init() {
-  const glueCore = await initGlueCore();
-  lib = initBBGMarketData(glueCore.interop);
-  window.bbgMarketData = lib;
+function fillRequestTypeOptions(select) {
+  const requestTypes = Object.keys(RequestType).map((key) => RequestType[key]);
 
-  lib.onConnectionStatusChanged((status) => console.warn('Connection Status: ', status));
-  onRequestTypeChange();
-
-  openRequestBtn.addEventListener('click', onOpenRequest);
-  closeRequestBtn.addEventListener('click', onCloseRequest);
-  clearEditorsBtn.addEventListener('click', onClearEditors);
-  requestTypeSelect.addEventListener('change', onRequestTypeChange);
+  requestTypes.forEach((type, ind) => {
+    const opt = document.createElement("option");
+    opt.value = type;
+    opt.textContent = type;
+    if (ind === 0) {
+      opt.defaultSelected = true;
+    }
+    select.appendChild(opt);
+  });
 }
 
-fillRequestTypeOptions(requestTypeSelect);
-init();

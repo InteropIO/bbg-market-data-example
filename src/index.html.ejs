@@ -13,16 +13,21 @@
       <div class="col-12">
         <div class="card mb-3">
           <div class="card-body">
-            <form action="" class="form-inline">
-              <div class="form-group">
-                <select id="request-type" class="custom-select" placeholder="Select Request Type">
-                </select>
-              </div>
+            <div>
+              <form action="" class="form-inline">
+                <div class="form-group">
+                  <select id="request-type" class="custom-select" placeholder="Select Request Type">
+                  </select>
+                </div>
 
-              <button type="button" id="btn-open" class="btn btn-primary">Open</button>
-              <button type="button" id="btn-close" class="btn btn-primary">Close</button>
-              <button type="button" id="btn-clear" class="btn btn-primary">Clear Editors</button>
-            </form>
+                <button type="button" id="btn-open" class="btn btn-primary ml-2">Open</button>
+                <button type="button" id="btn-close" class="btn btn-primary ml-2">Close</button>
+                <button type="button" id="btn-clear" class="btn btn-primary ml-2">Clear Editors</button>
+              </form>
+            </div>
+            <div class="mt-2">
+              <h5>Connection Status: <span id="connection-status"></span></h5>
+            </div>
           </div>
         </div>
       </div>
@@ -31,24 +36,24 @@
     <div class="row flex-xl-nowrap">
       <main class="col-12" id="content">
         <div class="mb-2">
-          <h4>Request Arguments</h4>
-          <div id="jsoneditor-request"></div>
+          <h5>Request Arguments</h5>
+          <div id="jsoneditor-request-args"></div>
         </div>
 
         <div class="mb-2">
-          <h4>
+          <h5>
             Response / Request Status: <span id="request-status"></span>
-          </h4>
+          </h5>
           <div id="jsoneditor-response"></div>
         </div>
 
         <div class="mb-2">
-          <h4>Error</h4>
+          <h5>Error</h5>
           <div id="jsoneditor-error"></div>
         </div>
 
         <div class="mb-2">
-          <h4>Event</h4>
+          <h5>Bloomberg Event</h5>
           <div id="jsoneditor-events"></div>
         </div>
       </main>
