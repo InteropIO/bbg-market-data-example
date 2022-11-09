@@ -1,17 +1,13 @@
-require('jsoneditor/dist/jsoneditor.css');
-require('./../styles/t42bootstrap.bundle.css');
-require('jquery/dist/jquery');
-require('bootstrap/dist/js/bootstrap.bundle');
-
-import JSONEditor from 'jsoneditor';
 import Glue from "@glue42/desktop";
-import BBGMarketData, { Session } from '@glue42/bbg-market-data';
+import '@glue42/theme'
 import { RequestType } from '@glue42/bbg-market-data/dist/cjs/request-types'
-
+import BBGMarketData, { Session } from '@glue42/bbg-market-data';
+import 'jsoneditor/dist/jsoneditor.css';
+import JSONEditor from 'jsoneditor';
 import { getDefaultArgs } from './request-default-args';
 
+// Entry point.
 window.addEventListener('DOMContentLoaded', () => {
-  // Entry point.
   start();
 });
 
@@ -34,21 +30,32 @@ let bbgMarketData;
 let currentRequest;
 const unsubscribeCallbacks = [];
 
+const log = (...args) => {
+  args.unshift("#### " + new Date().toISOString() + ":");
+  console.log.apply(null, args);
+};
+
 async function start() {
   const glue = await Glue();
   window.glue = glue;
-  console.log(`Glue42 initialized. Version: ${glue.version}`);
+  log(`Glue42 initialized. Version: ${glue.version}`);
 
   bbgMarketData = BBGMarketData(glue.interop, { connectionPeriodMsecs: 6 * 1000 });
   window.bbgMarketData = bbgMarketData;
-  console.log(`BBG Market Data initialized. Version: ${bbgMarketData.version}`);
+  log(`BBG Market Data initialized. Version: ${bbgMarketData.version}`);
 
   bindUI();
   fillRequestTypeOptions(requestTypeSelect);
 
   bbgMarketData.onConnectionStatusChanged((status) => {
-    console.log('Connection Status: ', status)
+    log('Connection Status: ', status)
+
     connectionStatus.innerHTML = status;
+    if (status === 'Connected') {
+      connectionStatus.classList = 'badge badge-success';
+    } else {
+      connectionStatus.classList = 'badge badge-danger'
+    }
   });
 
   onRequestTypeChange();
@@ -86,17 +93,22 @@ function bindUI() {
 }
 
 function eventHandler(event) {
-  console.log('[ON EVENT] ', event);
+  log('[ON EVENT] ', event);
   eventsEditor.set(event);
 }
 
 function statusHandler(status) {
-  console.log('[ON STATUS] ', status);
-  requestStatusText.innerHTML = status;
+  log('[ON STATUS] ', status);
+
+  if (status) {
+    requestStatusText.innerHTML = `Request Status: <span id="request-status">${status}</span>`
+  } else {
+    requestStatusText.innerHTML = '';
+  }
 }
 
 function responseHandler(resp) {
-  console.log('[ON DATA] ', resp);
+  log('[ON DATA] ', resp);
   responseEditor.set(resp);
 }
 
@@ -149,7 +161,7 @@ function openNonSubscriptionRequest(request) {
   request.open({ aggregateResponse: true, session: Session.Default })
     .then((response) => {
       responseEditor.set(response);
-      console.log('[RESPONSE]', response);
+      log('[RESPONSE]', response);
     }, (err) => {
       console.error('[RESPONSE ERROR] ', err);
     });
@@ -165,7 +177,7 @@ function onClearEditors() {
   errorEditor.set({});
   eventsEditor.set({});
 
-  statusHandler('');
+  statusHandler(undefined);
 }
 
 async function closeRequest() {
@@ -194,7 +206,7 @@ async function openRequest() {
 }
 
 function createRequest(requestType, requestArgs) {
-  console.log(`Create request of type ${requestType} with arguments: ${JSON.stringify(requestArgs)}`);
+  log(`Create request of type ${requestType} with arguments: ${JSON.stringify(requestArgs)}`);
 
   switch (requestType) {
     case RequestType.MarketSubscription: return bbgMarketData.createMarketDataRequest(requestArgs)

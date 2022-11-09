@@ -1,35 +1,35 @@
 {
   "name": "bbg-market-data-examples",
-  "version": "0.0.1-alpha.1",
+  "version": "0.1.0",
   "main": "./index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server --open --config webpack.config.js"
+    "start": "webpack serve --config ./webpack.config.js",
+    "build": "webpack --config ./webpack.config.js"
   },
   "author": "Tick42",
   "license": "ISC",
   "dependencies": {
-    "@babel/polyfill": "^7.7.0",
     "@glue42/bbg-market-data": "0.0.1-alpha.9",
     "@glue42/desktop": "^5.15.0",
-    "bootstrap": "^4.4.1",
-    "jquery": "^3.4.1",
-    "jsoneditor": "^6.2.1"
+    "@glue42/theme": "^4.0.5",
+    "jsoneditor": "^9.9.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
+    "@babel/core": "^7.20.2",
     "@babel/node": "^7.7.7",
-    "@babel/preset-env": "^7.7.7",
-    "babel-loader": "^8.0.6",
-    "clean-webpack-plugin": "^3.0.0",
-    "css-loader": "^3.4.2",
-    "file-loader": "^5.0.2",
-    "html-webpack-plugin": "^3.2.0",
-    "nodemon": "^2.0.2",
-    "style-loader": "^1.1.2",
-    "url-loader": "^3.0.0",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10",
-    "webpack-dev-server": "^3.10.1"
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^6.7.1",
+    "html-webpack-plugin": "^5.5.0",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
   }
 }

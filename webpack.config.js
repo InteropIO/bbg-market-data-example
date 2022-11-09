@@ -2,23 +2,23 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
+const DIST_PATH = path.join(__dirname, 'dist')
+const ENTRY_PATH = path.join(__dirname, '/src/index.js')
+
 module.exports = {
   mode: 'development',
-  devServer: {
-    inline: true,
-    port: 3000
-  },
-  entry: {
-    babel_polyfill: '@babel/polyfill',
-    bundle: path.join(__dirname, '/src/scripts/index.js'),
-  },
+  devtool: 'source-map',
+  entry: ENTRY_PATH,
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: DIST_PATH,
     filename: '[name].[hash].js'
   },
-  devtool: 'source-map',
+  devServer: {
+    port: 3000,
+    static: DIST_PATH
+  },
   resolve: {
-    extensions: ['*', '.js', '.ts']
+    extensions: ['*', '.js']
   },
   resolveLoader: {
     modules: [path.join(__dirname, 'node_modules')]
@@ -27,27 +27,19 @@ module.exports = {
     rules: [
       {
         test: /\.(js)?$/,
-        loaders: ['babel-loader'],
-        include: [path.resolve(__dirname, 'src')]
+        exclude: /node_modules/,
+        loader: 'babel-loader'
       },
       {
         test: /\.(css|scss)$/,
         use: ['style-loader', 'css-loader']
-      },
-      {
-        test: /\.(jpg|jpeg|gif|png|svg)$/,
-        use: 'file-loader'
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf)$/,
-        use: 'file-loader'
       }
     ]
   },
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: './src/index.html.ejs'
+      template: path.join(__dirname, './src/index.html')
     }),
   ]
 }
