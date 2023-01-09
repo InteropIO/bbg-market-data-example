@@ -9,7 +9,7 @@
   "author": "Tick42",
   "license": "ISC",
   "dependencies": {
-    "@glue42/bbg-market-data": "^0.0.1-alpha.12",
+    "@glue42/bbg-market-data": "^0.0.1-alpha.13",
     "@glue42/desktop": "^5.15.0",
     "@glue42/theme": "^4.0.5",
     "jsoneditor": "^9.9.2"
