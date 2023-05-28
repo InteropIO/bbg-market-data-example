@@ -1,7 +1,7 @@
 import Glue from "@glue42/desktop";
 import '@glue42/theme'
-import { RequestType } from '@glue42/bbg-market-data/dist/cjs/request-types'
-import BBGMarketData, { Session } from '@glue42/bbg-market-data';
+import { RequestType } from '@glue42/bbg-market-data/dist/cjs/core/request-types'
+import BBGMarketData, { Session, BloombergError } from '@glue42/bbg-market-data';
 import 'jsoneditor/dist/jsoneditor.css';
 import JSONEditor from 'jsoneditor';
 import { getDefaultArgs } from './request-default-args';
@@ -38,11 +38,10 @@ const log = (...args) => {
 async function start() {
   const glue = await Glue();
   window.glue = glue;
-  log(`Glue42 initialized. Version: ${glue.version}`);
+  log(`Glue42 initialized v.${glue.version}`);
 
-  bbgMarketData = BBGMarketData(glue.interop, { connectionPeriodMsecs: 6 * 1000 });
+  bbgMarketData = BBGMarketData(glue.interop, { debug: true, connectionPeriodMsecs: 6 * 1000 });
   window.bbgMarketData = bbgMarketData;
-  log(`BBG Market Data initialized. Version: ${bbgMarketData.version}`);
 
   bindUI();
   fillRequestTypeOptions(requestTypeSelect);
@@ -115,9 +114,13 @@ function responseHandler(resp) {
 function errorHandler(err) {
   console.error('[ON ERROR] ', err);
 
-  const errStr = JSON.stringify(err, Object.getOwnPropertyNames(err));
-  const errJson = JSON.parse(errStr);
-  errorEditor.set(errJson);
+  if (err instanceof BloombergError) {
+    errorEditor.set(err);
+  } else {
+    const errStr = JSON.stringify(err, Object.getOwnPropertyNames(err));
+    const errJson = JSON.parse(errStr);
+    errorEditor.set(errJson);
+  }
 }
 
 function subscriptionsFailHandler(errors) {

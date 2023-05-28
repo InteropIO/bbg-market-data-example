@@ -1,4 +1,4 @@
-import { RequestType } from '@glue42/bbg-market-data/dist/cjs/request-types'
+import { RequestType } from '@glue42/bbg-market-data/dist/cjs/core/request-types'
 
 function historicalDataArgs() {
   return {
