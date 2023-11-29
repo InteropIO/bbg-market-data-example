@@ -5,6 +5,7 @@ import BBGMarketData, { Session, BloombergError } from '@glue42/bbg-market-data'
 import 'jsoneditor/dist/jsoneditor.css';
 import JSONEditor from 'jsoneditor';
 import { getDefaultArgs } from './request-default-args';
+import IOSearch from "@interopio/search-api";
 
 // Entry point.
 window.addEventListener('DOMContentLoaded', () => {
@@ -35,16 +36,89 @@ const log = (...args) => {
   console.log.apply(null, args);
 };
 
+const initSearchProvider = async (glue) => {
+  const requestPerQuery = new Map();
+
+  const searchProvider = await glue.search.registerProvider({
+    name: 'bbg-mkt-data-example'
+  });
+
+  searchProvider.onQuery(function newSearchQueryHandler(query) {
+    console.log('### new query: ', query)
+
+    const request = bbgMarketData.createInstrumentListRequest({
+      query: query.search,
+      maxResults: 1000
+    });
+
+    requestPerQuery.set(query.id, request);
+
+    request.onData(function requestDataHandler({ data, isLast }) {
+      console.log('### BBG MDF request\'s data', data, isLast)
+
+      for (const { security, description } of data) {
+        query.sendResult({
+          type: {
+            name: 'bbg-instrument-details',
+            displayName: 'Bloomberg Instrument Details'
+          },
+          id: security, // ?? Not sure.
+          description: description
+        });
+      }
+
+      if (isLast) {
+        // Clean up.
+        query.done();
+        requestPerQuery.delete(query.id);
+      }
+    });
+
+    request.onError(function requestErrorHandler(error) {
+      console.error('### BBG MDF request error', error)
+
+      let errorMessage;
+      if (error instanceof BloombergError) {
+        errorMessage = `Received Bloomberg event message ${error.eventMessage}`;
+      } else {
+        errorMessage = error.message ?? 'Unknown error';
+      }
+
+      query.error(errorMessage);
+
+      // Clean up.
+      requestPerQuery.delete(query.id);
+    });
+
+    request.open({ aggregateResponse: false }).catch(console.error);
+  });
+
+  searchProvider.onQueryCancel(function queryCancelledHandler(query) {
+    const request = requestPerQuery.get(query.id);
+    if (!request) {
+      return;
+    }
+
+    // Clean up.
+    request.close();
+    requestPerQuery.delete(query.id)
+  });
+}
+
 async function start() {
-  const glue = await Glue();
+  const glue = await Glue({
+    libraries: [IOSearch]
+  });
   window.glue = glue;
   log(`Glue42 initialized v.${glue.version}`);
 
-  bbgMarketData = BBGMarketData(glue.interop, { debug: true, connectionPeriodMsecs: 6 * 1000 });
+  bbgMarketData = BBGMarketData(glue.interop, { debug: false, connectionPeriodMsecs: 6 * 1000 });
   window.bbgMarketData = bbgMarketData;
 
   bindUI();
   fillRequestTypeOptions(requestTypeSelect);
+
+  initSearchProvider(glue);
 
   bbgMarketData.onConnectionStatusChanged((status) => {
     log('Connection Status: ', status)
