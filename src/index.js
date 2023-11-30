@@ -33,7 +33,7 @@ const unsubscribeCallbacks = [];
 
 const log = (...args) => {
   args.unshift("#### " + new Date().toISOString() + ":");
-  // console.log.apply(null, args);
+  console.log.apply(null, args);
 };
 
 const initSearchProvider = async (glue) => {
