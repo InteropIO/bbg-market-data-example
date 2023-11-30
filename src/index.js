@@ -33,7 +33,7 @@ const unsubscribeCallbacks = [];
 
 const log = (...args) => {
   args.unshift("#### " + new Date().toISOString() + ":");
-  console.log.apply(null, args);
+  // console.log.apply(null, args);
 };
 
 const initSearchProvider = async (glue) => {
@@ -112,7 +112,31 @@ async function start() {
   window.glue = glue;
   log(`Glue42 initialized v.${glue.version}`);
 
-  bbgMarketData = BBGMarketData(glue.interop, { debug: false, connectionPeriodMsecs: 6 * 1000 });
+  // const overrideProtocolMethods = (defaultMethods) => {
+  //   const withMockPrefix = (name) => {
+  //     const [t42, mdfApi, actionName] = name.split('.');
+  //     return `${t42}.${mdfApi}.Mock.${actionName}`;
+  //   }
+
+  //   const overrides = Object.entries(defaultMethods).reduce(
+  //     (overrides, [key, methodDef]) => ({
+  //       ...overrides,
+  //       [key]: {
+  //         ...methodDef,
+  //         name: withMockPrefix(methodDef.name),
+  //       },
+  //     }),
+  //     {}
+  //   );
+
+  //   return overrides;
+  // };
+
+  bbgMarketData = BBGMarketData(glue.interop, {
+    debug: true,
+    connectionPeriodMsecs: 6 * 1000,
+    // overrideProtocolMethods
+  });
   window.bbgMarketData = bbgMarketData;
 
   bindUI();
