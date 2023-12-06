@@ -1,20 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" class="dark vh-100">
+<html lang="en" class="dark vh-100 d-flex">
 
 <head>
   <meta charset="UTF-8" http-equiv="CACHE-CONTROL" content="NO-CACHE" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <title>JS BBG Market Data Examples</title>
-
-  <style>
-    /* .main {
-      height: calc(100% - 195px);
-    } */
-  </style>
-
 </head>
 
-<body class="container-fluid vh-100 pt-3 ">
+<body class="flex-grow-1 d-flex flex-column overflow-auto mt-3">
 
   <div id="initialize-library-view">
     <h3>Initialization Settings</h3>
@@ -62,40 +55,44 @@
                 onclick="window.location.reload()">Re-initialize library</button>
             </form>
             <p class="mt-2 card-text">
-              <h5>MDF Connection Status: <span id="connection-status" class="badge badge-danger"></span></h5>
+            <h5>MDF Connection Status: <span id="connection-status" class="badge badge-danger"></span></h5>
             </p>
             <p id="request-description" class="card-text"></p>
           </div>
         </div>
       </div>
     </div>
-    <div class="main">
-      <div class="row mt-2 h-50">
-        <div class="col-6">
-          <h5>Request Arguments:</h5>
-          <div id="jsoneditor-request-args" class="h-100"></div>
-        </div>
-        <div class="col-6">
-          <div class="d-flex justify-content-between">
-            <h5>Response:</h5>
-            <h5 id="request-status">
-            </h5>
-          </div>
-
-          <div id="jsoneditor-response" class="h-100"></div>
-        </div>
+    <div class="row mt-2 h-50">
+      <div class="col-6">
+        <h5>Request Arguments:</h5>
+        <div id="jsoneditor-request-args" class="h-100"></div>
       </div>
-      <div class="row mt-5 h-50">
-        <div class="col-6">
-          <h5>Error:</h5>
-          <div id="jsoneditor-error" class="h-100"></div>
+      <div class="col-6">
+        <div class="d-flex justify-content-between">
+          <h5>Response:</h5>
+          <h5 id="request-status">
+          </h5>
         </div>
-        <div class="col-6">
-          <h5>Bloomberg Event:</h5>
-          <div id="jsoneditor-events" class="h-100"></div>
-        </div>
+
+        <div id="jsoneditor-response" class="h-100"></div>
       </div>
     </div>
+    <div class="row mt-5 h-50">
+      <div class="col-6">
+        <h5>Error:</h5>
+        <div id="jsoneditor-error" class="h-100"></div>
+      </div>
+      <div class="col-6">
+        <h5>Bloomberg Event:</h5>
+        <div id="jsoneditor-events" class="h-100"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer fixed-bottom navbar-light bg-light d-flex p-2">
+    <div id="app-version"></div>&nbsp; | &nbsp;
+    <div id="glue-version"></div>&nbsp; | &nbsp;
+    <div id="bbg-market-data-version"></div>
   </div>
 </body>
 

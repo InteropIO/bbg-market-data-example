@@ -102,6 +102,18 @@ export class UiController {
         }
     }
 
+    setAppVersion(value) {
+        document.getElementById('app-version').textContent = value
+    }
+
+    setGlueVersion(value) {
+        document.getElementById('glue-version').textContent = value
+    }
+
+    setBbgMarketDataVersion(value) {
+        document.getElementById('bbg-market-data-version').textContent = value
+    }
+
     onCreateRequestClick(handler) {
         createRequestBtnElement.addEventListener('click', handler)
     }

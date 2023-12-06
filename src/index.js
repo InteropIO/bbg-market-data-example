@@ -6,6 +6,7 @@ import IOSearch from "@interopio/search-api";
 import { configs as exampleConfigs } from './request-examples';
 import { UiController } from './ui-controller';
 import { initializeInstrumentListSearchProvider } from './search-providers/instrument-list-provider';
+import pkg from './../package.json';
 
 let glue;
 let bbgMarketData;
@@ -17,10 +18,14 @@ let selectedExampleConfig
 window.addEventListener('DOMContentLoaded', main);
 
 async function main() {
-  await initializeGlue();
-
   uiController = new UiController();
   uiController.init();
+
+  uiController.setAppVersion(`App Version: ${pkg.version}`);
+  
+  await initializeGlue();
+
+  uiController.setGlueVersion(`Glue Version: ${glue.info.version}`)
 
   const requestsSelectOptions = exampleConfigs.map(({ title }) => ({ text: title, value: title }));
   uiController.setRequestsSelectOptions(requestsSelectOptions);
@@ -37,7 +42,9 @@ async function main() {
 }
 
 function clearEditorsClickHandler() {
-  // 
+  uiController.setRequestResponseEditorValue({});
+  uiController.setRequestErrorEditorValue({});
+  uiController.setRequestBloombergEventEditorValue({});
 }
 
 function initLibraryBtnClickHandler() {
@@ -49,6 +56,8 @@ function initLibraryBtnClickHandler() {
   const methodNamePrefix = uiController.getMethodPrefixInputValue();
 
   initializeBBGMarketData(glue, libConfig, methodNamePrefix);
+
+  uiController.setBbgMarketDataVersion(`BBG Market Data Version: ${bbgMarketData.version}`)
 
   subscribeToConnectionStatus();
 
@@ -134,7 +143,7 @@ async function createRequestBtnClickHandler() {
     onRequestStatusChanged: (status) => {
       uiController.setRequestStatus(status);
 
-      if (RequestStatus.Opened || RequestStatus.Active) {
+      if (status === RequestStatus.Opened || status === RequestStatus.Active) {
         uiController.disableCreateRequestBtn(true);
       } else {
         uiController.disableCreateRequestBtn(false);
