@@ -1,340 +1,153 @@
 import Glue from "@glue42/desktop";
 import '@glue42/theme'
-import { RequestType } from '@glue42/bbg-market-data/dist/cjs/core/request-types'
-import BBGMarketData, { Session, BloombergError } from '@glue42/bbg-market-data';
+import BBGMarketData, { BloombergError, RequestStatus } from '@glue42/bbg-market-data';
 import 'jsoneditor/dist/jsoneditor.css';
-import JSONEditor from 'jsoneditor';
-import { getDefaultArgs } from './request-default-args';
 import IOSearch from "@interopio/search-api";
+import { configs as exampleConfigs } from './request-examples';
+import { UiController } from './ui-controller';
+import { initializeInstrumentListSearchProvider } from './search-providers/instrument-list-provider';
+
+let glue;
+let bbgMarketData;
+let disposeExecutedRequest;
+let uiController;
+let selectedExampleConfig
 
 // Entry point.
-window.addEventListener('DOMContentLoaded', () => {
-  start();
-});
+window.addEventListener('DOMContentLoaded', main);
 
-let containerRequest;
-let containerResponse;
-let containerError;
-let containerEvents;
-let openRequestBtn;
-let closeRequestBtn;
-let clearEditorsBtn;
-let requestTypeSelect;
-let requestStatusText;
-let requestArgsEditor;
-let responseEditor;
-let errorEditor;
-let eventsEditor;
-let connectionStatus;
+async function main() {
+  await initializeGlue();
 
-let bbgMarketData;
-let currentRequest;
-const unsubscribeCallbacks = [];
+  uiController = new UiController();
+  uiController.init();
 
-const log = (...args) => {
-  args.unshift("#### " + new Date().toISOString() + ":");
-  console.log.apply(null, args);
-};
+  const requestsSelectOptions = exampleConfigs.map(({ title }) => ({ text: title, value: title }));
+  uiController.setRequestsSelectOptions(requestsSelectOptions);
 
-const initSearchProvider = async (glue) => {
-  const requestPerQuery = new Map();
+  uiController.onInitLibraryClick(initLibraryBtnClickHandler);
 
-  const searchProvider = await glue.search.registerProvider({
-    name: 'bbg-mkt-data-example'
-  });
+  uiController.onSelectedRequestChanged(selectedRequestChangedHandler);
 
-  searchProvider.onQuery(function newSearchQueryHandler(query) {
-    console.log('### new query: ', query)
+  uiController.onCreateRequestClick(createRequestBtnClickHandler);
 
-    const request = bbgMarketData.createInstrumentListRequest({
-      query: query.search,
-      maxResults: 1000
-    });
+  uiController.onCloseRequestClick(closeRequestBtnClickHandler);
 
-    requestPerQuery.set(query.id, request);
+  uiController.onClearEditorsClick(clearEditorsClickHandler);
+}
 
-    request.onData(function requestDataHandler({ data, isLast }) {
-      console.log('### BBG MDF request\'s data', data, isLast)
+function clearEditorsClickHandler() {
+  // 
+}
 
-      for (const { security, description } of data) {
-        query.sendResult({
-          type: {
-            name: 'bbg-instrument-details',
-            displayName: 'Bloomberg Instrument Details'
-          },
-          id: security, // ?? Not sure.
-          description: description
-        });
-      }
+function initLibraryBtnClickHandler() {
+  uiController.hideInitLibraryView();
 
-      if (isLast) {
-        // Clean up.
-        query.done();
-        requestPerQuery.delete(query.id);
-      }
-    });
+  uiController.showRequestExecuteView();
 
-    request.onError(function requestErrorHandler(error) {
-      console.error('### BBG MDF request error', error)
+  const libConfig = uiController.getLibInitConfigEditorValue();
+  const methodNamePrefix = uiController.getMethodPrefixInputValue();
 
-      let errorMessage;
-      if (error instanceof BloombergError) {
-        errorMessage = `Received Bloomberg event message ${error.eventMessage}`;
-      } else {
-        errorMessage = error.message ?? 'Unknown error';
-      }
+  initializeBBGMarketData(glue, libConfig, methodNamePrefix);
 
-      query.error(errorMessage);
+  subscribeToConnectionStatus();
 
-      // Clean up.
-      requestPerQuery.delete(query.id);
-    });
+  initializeInstrumentListSearchProvider(glue, bbgMarketData);
+}
 
-    request.open({ aggregateResponse: false }).catch(console.error);
-  });
-
-  searchProvider.onQueryCancel(function queryCancelledHandler(query) {
-    const request = requestPerQuery.get(query.id);
-    if (!request) {
-      return;
-    }
-
-    // Clean up.
-    request.close();
-    requestPerQuery.delete(query.id)
+function subscribeToConnectionStatus() {
+  bbgMarketData.onConnectionStatusChanged((status) => {
+    uiController.setConnectionStatus(status);
   });
 }
 
-async function start() {
-  const glue = await Glue({
+async function initializeGlue() {
+  glue = await Glue({
     libraries: [IOSearch]
   });
   window.glue = glue;
-  log(`Glue42 initialized v.${glue.version}`);
+}
 
-  // const overrideProtocolMethods = (defaultMethods) => {
-  //   const withMockPrefix = (name) => {
-  //     const [t42, mdfApi, actionName] = name.split('.');
-  //     return `${t42}.${mdfApi}.Mock.${actionName}`;
-  //   }
+function initializeBBGMarketData(io, config, methodNamePrefix) {
+  const overrideProtocolMethods = (defaultMethods) => {
+    const withMethodNamePrefix = (name) => {
+      const [t42, mdfApi, actionName] = name.split('.');
+      return `${t42}.${mdfApi}.${methodNamePrefix}${actionName}`;
+    }
 
-  //   const overrides = Object.entries(defaultMethods).reduce(
-  //     (overrides, [key, methodDef]) => ({
-  //       ...overrides,
-  //       [key]: {
-  //         ...methodDef,
-  //         name: withMockPrefix(methodDef.name),
-  //       },
-  //     }),
-  //     {}
-  //   );
+    const overrides = Object.entries(defaultMethods).reduce(
+      (overrides, [key, methodDef]) => ({
+        ...overrides,
+        [key]: {
+          ...methodDef,
+          name: withMethodNamePrefix(methodDef.name),
+        },
+      }),
+      {}
+    );
 
-  //   return overrides;
-  // };
+    return overrides;
+  };
 
-  bbgMarketData = BBGMarketData(glue.interop, {
-    debug: true,
-    connectionPeriodMsecs: 6 * 1000,
-    // overrideProtocolMethods
+  bbgMarketData = BBGMarketData(io.interop, {
+    ...config,
+    overrideProtocolMethods
   });
   window.bbgMarketData = bbgMarketData;
-
-  bindUI();
-  fillRequestTypeOptions(requestTypeSelect);
-
-  initSearchProvider(glue);
-
-  bbgMarketData.onConnectionStatusChanged((status) => {
-    log('Connection Status: ', status)
-
-    connectionStatus.innerHTML = status;
-    if (status === 'Connected') {
-      connectionStatus.classList = 'badge badge-success';
-    } else {
-      connectionStatus.classList = 'badge badge-danger'
-    }
-  });
-
-  onRequestTypeChange();
-
-  openRequestBtn.addEventListener('click', openRequest);
-  closeRequestBtn.addEventListener('click', closeRequest);
-  clearEditorsBtn.addEventListener('click', onClearEditors);
-  requestTypeSelect.addEventListener('change', onRequestTypeChange);
 }
 
-function bindUI() {
-  openRequestBtn = document.getElementById('btn-open');
-  closeRequestBtn = document.getElementById('btn-close');
-  clearEditorsBtn = document.getElementById('btn-clear');
-  requestTypeSelect = document.getElementById('request-type');
-  requestStatusText = document.getElementById('request-status');
-  connectionStatus = document.getElementById('connection-status');
+function selectedRequestChangedHandler(value) {
+  selectedExampleConfig = exampleConfigs.find(({ title }) => title === value);
+  if (selectedExampleConfig) {
+    uiController.setRequestArgsEditorValue(selectedExampleConfig.requestArguments)
+    
+    uiController.setRequestDescription(selectedExampleConfig.description)
+  }
+}
 
-  containerRequest = document.getElementById('jsoneditor-request-args');
-  containerResponse = document.getElementById('jsoneditor-response');
-  containerError = document.getElementById('jsoneditor-error');
-  containerEvents = document.getElementById('jsoneditor-events');
+async function closeRequestBtnClickHandler() {
+  if (typeof disposeExecutedRequest === 'function') {
+    disposeExecutedRequest();
+    uiController.disableCreateRequestBtn(false);
+  }
+}
 
-  const editorOptions = {
-    mode: 'code',
-    modes: ['code', 'tree'],
-    onError: function (err) {
-      alert(err.toString())
+async function createRequestBtnClickHandler() {
+
+  if (!selectedExampleConfig) {
+    return;
+  }
+
+  const eventDispatcher = {
+    onRequestData: (data) => {
+      uiController.setRequestResponseEditorValue(data);
     },
-  };
-  requestArgsEditor = new JSONEditor(containerRequest, editorOptions);
-  responseEditor = new JSONEditor(containerResponse, editorOptions);
-  errorEditor = new JSONEditor(containerError, editorOptions);
-  eventsEditor = new JSONEditor(containerEvents, editorOptions);
-}
+    onRequestError: (error) => {
+      if (error instanceof BloombergError) {
+        uiController.setRequestErrorEditorValue(error)
+      } else {
+        const errorStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
+        const errorJson = JSON.parse(errorStr);
+        uiController.setRequestErrorEditorValue(errorJson)
+      }
+    },
+    onRequestStatusChanged: (status) => {
+      uiController.setRequestStatus(status);
 
-function eventHandler(event) {
-  log('[ON EVENT] ', event);
-  eventsEditor.set(event);
-}
-
-function statusHandler(status) {
-  log('[ON STATUS] ', status);
-
-  if (status) {
-    requestStatusText.innerHTML = `Request Status: <span id="request-status">${status}</span>`
-  } else {
-    requestStatusText.innerHTML = '';
-  }
-}
-
-function responseHandler(resp) {
-  log('[ON DATA] ', resp);
-  responseEditor.set(resp);
-}
-
-function errorHandler(err) {
-  console.error('[ON ERROR] ', err);
-
-  if (err instanceof BloombergError) {
-    errorEditor.set(err);
-  } else {
-    const errStr = JSON.stringify(err, Object.getOwnPropertyNames(err));
-    const errJson = JSON.parse(errStr);
-    errorEditor.set(errJson);
-  }
-}
-
-function subscriptionsFailHandler(errors) {
-  console.warn('[ON SUBSCRIPTIONS FAIL] ', errors);
-}
-
-function openSubscriptionRequest(request) {
-  // Listen for partial response
-  unsubscribeCallbacks.push(request.onData(responseHandler));
-
-  // Listen for request errors
-  unsubscribeCallbacks.push(request.onError(errorHandler));
-
-  // Listen for subscription failures
-  unsubscribeCallbacks.push(request.onFail(subscriptionsFailHandler));
-
-  // Listen for all Bloomberg events
-  unsubscribeCallbacks.push(request.onEvent(eventHandler));
-
-  // Listen for request status
-  unsubscribeCallbacks.push(request.onStatus(statusHandler));
-
-  // Send the request to Bloomberg. Explicitly states the default session for subscription requests - RealTime.
-  request.open({ session: Session.RealTime });
-}
-
-function openNonSubscriptionRequest(request) {
-  // Listen for partial response
-  unsubscribeCallbacks.push(request.onData(responseHandler));
-
-  // Listen for request errors
-  unsubscribeCallbacks.push(request.onError(errorHandler));
-
-  // Listen for all Bloomberg events
-  unsubscribeCallbacks.push(request.onEvent(eventHandler));
-
-  // Listen for request status
-  unsubscribeCallbacks.push(request.onStatus(statusHandler));
-
-  // Send the request to Bloomberg and wait for aggregated response. Explicitly states that the default session should be used.
-  request.open({ aggregateResponse: true, session: Session.Default })
-    .then((response) => {
-      responseEditor.set(response);
-      log('[RESPONSE]', response);
-    }, (err) => {
-      console.error('[RESPONSE ERROR] ', err);
-    });
-}
-
-function onRequestTypeChange() {
-  const requestType = requestTypeSelect.options[requestTypeSelect.selectedIndex].value
-  requestArgsEditor.set(getDefaultArgs(requestType));
-}
-
-function onClearEditors() {
-  responseEditor.set({});
-  errorEditor.set({});
-  eventsEditor.set({});
-
-  statusHandler(undefined);
-}
-
-async function closeRequest() {
-  if (currentRequest != null) {
-    await currentRequest.close()
-  }
-}
-
-async function openRequest() {
-  onClearEditors();
-  unsubscribeCallbacks.forEach(cb => cb());
-
-  await closeRequest()
-
-  const requestArgs = requestArgsEditor.get();
-  const requestType = requestTypeSelect.options[requestTypeSelect.selectedIndex].value
-
-  currentRequest = createRequest(requestType, requestArgs);
-  window.currentRequest = currentRequest;
-
-  if (RequestType.MarketSubscription === requestType) {
-    openSubscriptionRequest(currentRequest)
-  } else {
-    openNonSubscriptionRequest(currentRequest);
-  }
-}
-
-function createRequest(requestType, requestArgs) {
-  log(`Create request of type ${requestType} with arguments: ${JSON.stringify(requestArgs)}`);
-
-  switch (requestType) {
-    case RequestType.MarketSubscription: return bbgMarketData.createMarketDataRequest(requestArgs)
-    case RequestType.HistoricalData: return bbgMarketData.createHistoricalDataRequest(requestArgs)
-    case RequestType.ReferenceData: return bbgMarketData.createReferenceDataRequest(requestArgs)
-    case RequestType.IntraDayBar: return bbgMarketData.createIntraDayBarRequest(requestArgs)
-    case RequestType.InstrumentList: return bbgMarketData.createInstrumentListRequest(requestArgs)
-    case RequestType.Snapshot: return bbgMarketData.createSnapshotRequest(requestArgs)
-    case RequestType.FieldSearch: return bbgMarketData.createFieldSearchRequest(requestArgs)
-    case RequestType.FieldList: return bbgMarketData.createFieldListRequest(requestArgs)
-    case RequestType.UserEntitlements: return bbgMarketData.createUserEntitlementsRequest(requestArgs)
-    default:
-      throw new Error('Unknown request type ' + requestType);
-  }
-}
-
-function fillRequestTypeOptions(select) {
-  const requestTypes = Object.keys(RequestType).map((key) => RequestType[key]);
-
-  requestTypes.forEach((type, ind) => {
-    const opt = document.createElement("option");
-    opt.value = type;
-    opt.textContent = type;
-    if (ind === 0) {
-      opt.defaultSelected = true;
+      if (RequestStatus.Opened || RequestStatus.Active) {
+        uiController.disableCreateRequestBtn(true);
+      } else {
+        uiController.disableCreateRequestBtn(false);
+      }
+    },
+    onRequestBloombergEvent: (event) => {
+      uiController.setRequestBloombergEventEditorValue(event);
     }
-    select.appendChild(opt);
-  });
-}
+  }
 
+  const requestArgs = uiController.getRequestArgsEditorValue();
+
+  disposeExecutedRequest = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher);
+
+  window.disposeExecutedRequest = disposeExecutedRequest;
+}
