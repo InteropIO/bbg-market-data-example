@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Branch check
+      run: |
+        if [[ $BRANCH != master ]]
+        then
+          echo "Release versions on master branch"
+          exit 1
+        fi
+      env:
+        BRANCH: ${{ github.ref_name }}
+
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js 16
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+        cache: 'npm'
+    
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Bump app version
+      run: |
+        echo "NEW_VERSION=$(npm --no-git-tag-version version minor)" >> $GITHUB_ENV
+    
+    - name: Build
+      run: npm run build --if-present
+
+    - name: Commit package.json and package-lock.json /dist
+      run: |
+        git add "package.json"
+        git add "package-lock.json"
+        git add "dist/"
+        
