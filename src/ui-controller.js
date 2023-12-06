@@ -106,8 +106,8 @@ export class UiController {
         document.getElementById('app-version').textContent = value
     }
 
-    setGlueVersion(value) {
-        document.getElementById('glue-version').textContent = value
+    setIOConnectVersion(value) {
+        document.getElementById('io-connect-version').textContent = value
     }
 
     setBbgMarketDataVersion(value) {

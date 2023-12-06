@@ -1,9 +1,9 @@
-export const initializeInstrumentListSearchProvider = async (glue, bbgMarketData) => {
+export const initializeInstrumentListSearchProvider = async (io, bbgMarketData) => {
     console.log('Instrument List Search Provider starting...');
 
     const requestPerQuery = new Map();
 
-    const searchProvider = await glue.search.registerProvider({
+    const searchProvider = await io.search.registerProvider({
         name: 'bbg-mkt-data-example'
     });
 

@@ -1,5 +1,5 @@
-import Glue from "@glue42/desktop";
-import '@glue42/theme'
+import IOConnectDesktop from "@interopio/desktop";
+import '@interopio/theme-demo-apps'
 import BBGMarketData, { BloombergError, RequestStatus } from '@glue42/bbg-market-data';
 import 'jsoneditor/dist/jsoneditor.css';
 import IOSearch from "@interopio/search-api";
@@ -8,7 +8,7 @@ import { UiController } from './ui-controller';
 import { initializeInstrumentListSearchProvider } from './search-providers/instrument-list-provider';
 import pkg from './../package.json';
 
-let glue;
+let io;
 let bbgMarketData;
 let disposeExecutedRequest;
 let uiController;
@@ -23,9 +23,9 @@ async function main() {
 
   uiController.setAppVersion(`App Version: ${pkg.version}`);
   
-  await initializeGlue();
+  await initializeIOConnect();
 
-  uiController.setGlueVersion(`Glue Version: ${glue.info.version}`)
+  uiController.setIOConnectVersion(`IO Connect Version: ${io.info.version}`)
 
   const requestsSelectOptions = exampleConfigs.map(({ title }) => ({ text: title, value: title }));
   uiController.setRequestsSelectOptions(requestsSelectOptions);
@@ -55,13 +55,13 @@ function initLibraryBtnClickHandler() {
   const libConfig = uiController.getLibInitConfigEditorValue();
   const methodNamePrefix = uiController.getMethodPrefixInputValue();
 
-  initializeBBGMarketData(glue, libConfig, methodNamePrefix);
+  initializeBBGMarketData(io, libConfig, methodNamePrefix);
 
   uiController.setBbgMarketDataVersion(`BBG Market Data Version: ${bbgMarketData.version}`)
 
   subscribeToConnectionStatus();
 
-  initializeInstrumentListSearchProvider(glue, bbgMarketData);
+  initializeInstrumentListSearchProvider(io, bbgMarketData);
 }
 
 function subscribeToConnectionStatus() {
@@ -70,11 +70,11 @@ function subscribeToConnectionStatus() {
   });
 }
 
-async function initializeGlue() {
-  glue = await Glue({
+async function initializeIOConnect() {
+  io = await IOConnectDesktop({
     libraries: [IOSearch]
   });
-  window.glue = glue;
+  window.io = io;
 }
 
 function initializeBBGMarketData(io, config, methodNamePrefix) {
