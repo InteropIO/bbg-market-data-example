@@ -37,6 +37,11 @@ const log = (...args) => {
 };
 
 const initSearchProvider = async (glue) => {
+  if(glue.search == null) {
+    console.warn('Search API not initialized.');
+    return;
+  }
+
   const requestPerQuery = new Map();
 
   const searchProvider = await glue.search.registerProvider({
@@ -106,9 +111,8 @@ const initSearchProvider = async (glue) => {
 }
 
 async function start() {
-  const glue = await Glue({
-    libraries: [IOSearch]
-  });
+  const glue = await Glue();
+  await IOSearch(glue).catch(console.error);
   window.glue = glue;
   log(`Glue42 initialized v.${glue.version}`);
 
