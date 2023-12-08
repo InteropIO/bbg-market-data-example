@@ -49,6 +49,10 @@ export class UiController {
         })
     }
 
+    aggregateResponseChecked() {
+        return document.getElementById("aggregate-response-check").checked;
+    }
+
     disableCreateRequestBtn(disabled) {
         createRequestBtnElement.disabled = disabled;
     }

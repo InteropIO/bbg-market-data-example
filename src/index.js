@@ -71,9 +71,8 @@ function subscribeToConnectionStatus() {
 }
 
 async function initializeIOConnect() {
-  io = await IOConnectDesktop({
-    libraries: [IOSearch]
-  });
+  io = await IOConnectDesktop();
+  await IOSearch(io).catch(console.error);
   window.io = io;
 }
 
@@ -127,8 +126,14 @@ async function createRequestBtnClickHandler() {
     return;
   }
 
+  const aggregateResponse = uiController.aggregateResponseChecked();
+
   const eventDispatcher = {
     onRequestData: (data) => {
+      if(aggregateResponse) {
+        console.log('Aggregated Response: ', data);
+      }
+
       uiController.setRequestResponseEditorValue(data);
     },
     onRequestError: (error) => {
@@ -156,7 +161,7 @@ async function createRequestBtnClickHandler() {
 
   const requestArgs = uiController.getRequestArgsEditorValue();
 
-  disposeExecutedRequest = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher);
+  disposeExecutedRequest = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher, aggregateResponse);
 
   window.disposeExecutedRequest = disposeExecutedRequest;
 }

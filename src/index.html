@@ -47,7 +47,10 @@
                 <label for="request-type" class="mr-2">Pick a request:</label>
                 <select id="request-type" class="form-control"></select>
               </div>
-
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="aggregate-response-check">
+                <label class="form-check-label" for="aggregate-response-check">Aggregate Response (only applicable for non-subscription requests, see aggregated response also in DevTools -> Console)</label>
+              </div>
               <button type="button" id="btn-open" class="btn btn-secondary ml-2">Create Request</button>
               <button type="button" id="btn-close" class="btn btn-secondary ml-2">Close Request</button>
               <button type="button" id="btn-clear" class="btn btn-secondary ml-2">Clear Editors</button>

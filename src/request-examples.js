@@ -1,8 +1,10 @@
-const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventDispatcher }) => {
+const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventDispatcher, aggregateResponse }) => {
     const request = requestFactory(requestArgs);
 
     const unsubscribeOnData = request.onData(function handleData({ data, isLast }) {
-        eventDispatcher.onRequestData(data)
+        if(!aggregateResponse) {
+            eventDispatcher.onRequestData(data)
+        }
     })
 
     const unsubscribeOnError = request.onError(function handleError(error) {
@@ -27,7 +29,18 @@ const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventDispat
         unsubscribeOnEvent();
     }
 
-    request.open({ aggregateResponse: false });
+    if (aggregateResponse === true) {
+        request.open({ aggregateResponse: true })
+            .then(function handleAggregatedResponseData(data) {
+                eventDispatcher.onRequestData(data)
+            })
+            .catch(function handleError(error) {
+                eventDispatcher.onRequestError(error);
+            })
+    } else {
+        request.open({ aggregateResponse: false })
+    }
+
 
     return dispose;
 };
@@ -94,10 +107,11 @@ export const configs = [
             fieldType: 'RealTime',
             returnFieldDocumentation: true
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createFieldListRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -106,10 +120,11 @@ export const configs = [
         requestArguments: {
             searchSpec: 'last price'
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createFieldSearchRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -127,10 +142,11 @@ export const configs = [
             'nonTradingDayFillOption': 'NON_TRADING_WEEKDAYS',
             'nonTradingDayFillMethod': 'PREVIOUS_VALUE'
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createHistoricalDataRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -140,10 +156,11 @@ export const configs = [
             query: 'VOD',
             maxResults: 5
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createInstrumentListRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -158,10 +175,11 @@ export const configs = [
             'interval': 60,
             'security': 'IBM US Equity',
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createIntraDayBarRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -172,10 +190,11 @@ export const configs = [
             'fields': ['PX_LAST', 'OPEN'],
             'returnEids': true,
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createReferenceDataRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -184,10 +203,11 @@ export const configs = [
         requestArguments: {
             security: "VOD LN Equity"
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createSnapshotRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
     {
@@ -196,10 +216,11 @@ export const configs = [
         requestArguments: {
             uuid: 1000
         },
-        createRequest: (bbgMarketData, requestArgs, eventDispatcher) => createNonSubscriptionRequest({
+        createRequest: (bbgMarketData, requestArgs, eventDispatcher, aggregateResponse) => createNonSubscriptionRequest({
             requestFactory: bbgMarketData.createUserEntitlementsRequest,
             requestArgs,
-            eventDispatcher
+            eventDispatcher,
+            aggregateResponse
         })
     },
 ]
