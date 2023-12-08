@@ -19,10 +19,7 @@ const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventDispat
         eventDispatcher.onRequestBloombergEvent(event);
     })
 
-    const dispose = async () => {
-        // Closing the request.
-        await request.close();
-
+    const unsubscribeEvents = async () => {
         unsubscribeOnData();
         unsubscribeOnError();
         unsubscribeOnStatus();
@@ -41,8 +38,10 @@ const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventDispat
         request.open({ aggregateResponse: false })
     }
 
-
-    return dispose;
+    return {
+        request,
+        unsubscribeEvents
+    };
 };
 
 const createSubscriptionRequest = ({ requestFactory, requestArgs, eventDispatcher }) => {
@@ -64,7 +63,7 @@ const createSubscriptionRequest = ({ requestFactory, requestArgs, eventDispatche
         eventDispatcher.onRequestBloombergEvent(event);
     })
 
-    const dispose = async () => {
+    const unsubscribeEvents = async () => {
         // Closing the request.
         await request.close();
 
@@ -76,7 +75,10 @@ const createSubscriptionRequest = ({ requestFactory, requestArgs, eventDispatche
 
     request.open();
 
-    return dispose;
+    return {
+        request,
+        unsubscribeEvents
+    };
 };
 
 

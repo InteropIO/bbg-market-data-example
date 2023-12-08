@@ -1,16 +1,17 @@
 import IOConnectDesktop from "@interopio/desktop";
 import '@interopio/theme-demo-apps'
-import BBGMarketData, { BloombergError, RequestStatus } from '@glue42/bbg-market-data';
+import BBGMarketData, { BloombergError } from '@glue42/bbg-market-data';
 import 'jsoneditor/dist/jsoneditor.css';
 import IOSearch from "@interopio/search-api";
-import { configs as exampleConfigs } from './request-examples';
+import { configs as exampleConfigs } from './requests';
 import { UiController } from './ui-controller';
 import { initializeInstrumentListSearchProvider } from './search-providers/instrument-list-provider';
 import pkg from './../package.json';
 
 let io;
 let bbgMarketData;
-let disposeExecutedRequest;
+let executedRequest;
+let unsubscribeRequestEvents;
 let uiController;
 let selectedExampleConfig
 
@@ -22,7 +23,7 @@ async function main() {
   uiController.init();
 
   uiController.setAppVersion(`App Version: ${pkg.version}`);
-  
+
   await initializeIOConnect();
 
   uiController.setIOConnectVersion(`IO Connect Version: ${io.info.version}`)
@@ -108,29 +109,39 @@ function selectedRequestChangedHandler(value) {
   selectedExampleConfig = exampleConfigs.find(({ title }) => title === value);
   if (selectedExampleConfig) {
     uiController.setRequestArgsEditorValue(selectedExampleConfig.requestArguments)
-    
+
     uiController.setRequestDescription(selectedExampleConfig.description)
   }
 }
 
 async function closeRequestBtnClickHandler() {
-  if (typeof disposeExecutedRequest === 'function') {
-    disposeExecutedRequest();
-    uiController.disableCreateRequestBtn(false);
+  if (executedRequest != null) {
+    executedRequest.close();
   }
 }
 
 async function createRequestBtnClickHandler() {
-
   if (!selectedExampleConfig) {
     return;
   }
+
+  if (executedRequest != null) {
+    // Clean up.
+    executedRequest.close();
+  }
+
+  if (typeof unsubscribeRequestEvents === 'function') {
+    // Making sure to not receive event (data, error, bbg event) from an old request. 
+    unsubscribeRequestEvents();
+  }
+
+  clearEditorsClickHandler();
 
   const aggregateResponse = uiController.aggregateResponseChecked();
 
   const eventDispatcher = {
     onRequestData: (data) => {
-      if(aggregateResponse) {
+      if (aggregateResponse) {
         console.log('Aggregated Response: ', data);
       }
 
@@ -147,12 +158,6 @@ async function createRequestBtnClickHandler() {
     },
     onRequestStatusChanged: (status) => {
       uiController.setRequestStatus(status);
-
-      if (status === RequestStatus.Opened || status === RequestStatus.Active) {
-        uiController.disableCreateRequestBtn(true);
-      } else {
-        uiController.disableCreateRequestBtn(false);
-      }
     },
     onRequestBloombergEvent: (event) => {
       uiController.setRequestBloombergEventEditorValue(event);
@@ -161,7 +166,13 @@ async function createRequestBtnClickHandler() {
 
   const requestArgs = uiController.getRequestArgsEditorValue();
 
-  disposeExecutedRequest = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher, aggregateResponse);
+  const { request, unsubscribeEvents } = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher, aggregateResponse);
 
-  window.disposeExecutedRequest = disposeExecutedRequest;
+  uiController.setRequestID(request.id);
+
+  executedRequest = request;
+  unsubscribeRequestEvents = unsubscribeEvents;
+
+  window.executedRequest = request;
+  window.unsubscribeRequestEvents = unsubscribeEvents;
 }

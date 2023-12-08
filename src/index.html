@@ -49,7 +49,8 @@
               </div>
               <div class="form-check mb-3">
                 <input type="checkbox" class="form-check-input" id="aggregate-response-check">
-                <label class="form-check-label" for="aggregate-response-check">Aggregate Response (only applicable for non-subscription requests, see aggregated response also in DevTools -> Console)</label>
+                <label class="form-check-label" for="aggregate-response-check">Aggregate Response (only applicable for
+                  non-subscription requests, see aggregated response also in DevTools -> Console)</label>
               </div>
               <button type="button" id="btn-open" class="btn btn-secondary ml-2">Create Request</button>
               <button type="button" id="btn-close" class="btn btn-secondary ml-2">Close Request</button>
@@ -67,7 +68,11 @@
     </div>
     <div class="row mt-2 h-50">
       <div class="col-6">
-        <h5>Request Arguments:</h5>
+        <div class="d-flex justify-content-between">
+          <h5>Request Arguments:</h5>
+          <h5 id="request-id">
+          </h5>
+        </div>
         <div id="jsoneditor-request-args" class="h-100"></div>
       </div>
       <div class="col-6">

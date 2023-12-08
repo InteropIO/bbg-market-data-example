@@ -1,4 +1,5 @@
 import JSONEditor from 'jsoneditor';
+import { RequestStatus } from '@glue42/bbg-market-data';
 
 let createRequestBtnElement;
 let closeRequestBtnElement;
@@ -53,10 +54,6 @@ export class UiController {
         return document.getElementById("aggregate-response-check").checked;
     }
 
-    disableCreateRequestBtn(disabled) {
-        createRequestBtnElement.disabled = disabled;
-    }
-
     hideInitLibraryView() {
         document.getElementById('initialize-library-view').style.display = 'none';
     }
@@ -89,9 +86,21 @@ export class UiController {
         document.getElementById('request-description').textContent = value;
     }
 
+    setRequestID(value) {
+        document.getElementById('request-id').innerHTML = `Request ID: <i>${value}</i>`;
+    }
+
     setRequestStatus(value) {
         if (value) {
-            requestStatusTextElement.innerHTML = `Request Status: <span id="request-status">${value}</span>`
+            let classList = ''; 
+            if(value === RequestStatus.Failed) {
+                classList = 'text-danger';
+            } else if (value === RequestStatus.Completed) {
+                classList = 'text-success';
+            }
+            
+            value === RequestStatus.Failed ? 'text-danger' : '';
+            requestStatusTextElement.innerHTML = `Request Status: <span class="${classList}" id="request-status">${value}</span>`
         } else {
             requestStatusTextElement.innerHTML = '';
         }
