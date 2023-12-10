@@ -2,7 +2,7 @@
 
 ![bbg-market-data tester app image](./app.png)
 
-The repository contains a simple application that demonstrates the usage of [@glue42/bbg-market-data](https://www.npmjs.com/package/@glue42/bbg-market-data).
+A simple application that demonstrates the usage of [@glue42/bbg-market-data](https://www.npmjs.com/package/@glue42/bbg-market-data).
 The application allows selection of any request available from @glue42/bbg-market-data, opening the selected request and visualization of data, errors, bloomberg event and request's status.
 
 ## Prerequisites
