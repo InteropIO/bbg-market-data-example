@@ -1,17 +1,20 @@
-name: Release
+name: Bump Tester App
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  bump:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./tester-app
     steps:
     - name: Branch check
       run: |
         if [[ $BRANCH != master ]]
         then
-          echo "Release versions on master branch"
+          echo "Bump versions on master branch"
           exit 1
         fi
       env:
@@ -40,7 +43,8 @@ jobs:
         git add "package.json"
         git add "package-lock.json"
         git add "dist/"
-        git commit -m "Release ${{ env.NEW_VERSION }}"
+        git commit -m "Bump tester-app ${{ env.NEW_VERSION }}"
+        git tag tester-app@${{ env.NEW_VERSION }}
       
     - name: Push changes to repository
       env:
