@@ -1,0 +1,15 @@
+{
+  "name": "bbg-market-data-examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Tick42",
+  "license": "ISC",
+  "dependencies": {
+    "@glue42/bbg-market-data": "^0.4.0",
+    "@interopio/desktop": "^6.0.2"
+  }
+}
