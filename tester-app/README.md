@@ -14,7 +14,10 @@ The application allows selection of any request available from @glue42/bbg-marke
 ## Usage locally
 
 - Clone the repository.
-- Copy the app definition file `bbg-market-data-tester-app.json` to the io.Connect Desktop (%LocalAppData%/interop.io/io.Connect Desktop\config\apps) or io.Connect Browser applications store.
+- Copy the app definition file `bbg-market-data-tester-app.json` to the appropriate applications store:
+  * io.Connect Desktop - %LocalAppData%/interop.io/io.Connect Desktop/Desktop/config/apps
+  * io.Connect Browser - see documentation https://docs.interop.io/browser/capabilities/app-management/index.html#app_definitions
+  * Glue42 Enterprise - %LocalAppData%/Tick42/GlueDesktop/config/apps
 - Run `npm install` to install all dependencies.
 - Run `npm start` to start the app. The app will be hosted at http://localhost:3000.
 
