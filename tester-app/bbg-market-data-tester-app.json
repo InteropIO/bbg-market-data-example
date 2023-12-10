@@ -1,8 +1,8 @@
 [
   {
-    "title": "BBG Market Data Examples",
+    "title": "BBG Market Data Tester App",
     "type": "window",
-    "name": "bbg-market-data-examples",
+    "name": "bbg-market-data-tester-app",
     "details": {
       "url": "http://localhost:3000",
       "allowCollapse": false,
