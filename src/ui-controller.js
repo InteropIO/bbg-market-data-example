@@ -1,29 +1,17 @@
 import JSONEditor from 'jsoneditor';
-import { RequestStatus } from '@glue42/bbg-market-data';
+import { RequestStatus, ConnectionStatus } from '@glue42/bbg-market-data';
 
-let createRequestBtnElement;
-let closeRequestBtnElement;
-let clearEditorsBtnElement;
 let requestsSelectElement;
-let requestStatusTextElement;
 let requestArgsEditor;
 let responseEditor;
 let errorEditor;
 let eventsEditor;
-let connectionStatus;
 let libConfigEditor;
-let initLibraryBtn;
 
 export class UiController {
 
-    init() {
-        createRequestBtnElement = document.getElementById('btn-open');
-        closeRequestBtnElement = document.getElementById('btn-close');
+    init({ libConfig }) {
         requestsSelectElement = document.getElementById('request-type');
-        requestStatusTextElement = document.getElementById('request-status');
-        connectionStatus = document.getElementById('connection-status');
-        initLibraryBtn = document.getElementById('init-library-btn');
-        clearEditorsBtnElement = document.getElementById('btn-clear');
 
         const editorOptions = {
             search: true,
@@ -40,14 +28,7 @@ export class UiController {
         eventsEditor = new JSONEditor(document.getElementById('jsoneditor-events'), editorOptions);
         libConfigEditor = new JSONEditor(document.getElementById('lib-config-editor'), editorOptions);
 
-        libConfigEditor.set({
-            debug: false,
-            logLevel: 'info',
-            sessionSettings: {
-                options: undefined,
-                identityOptions: undefined
-            }
-        })
+        libConfigEditor.set(libConfig)
     }
 
     aggregateResponseChecked() {
@@ -91,14 +72,16 @@ export class UiController {
     }
 
     setRequestStatus(value) {
+        const requestStatusTextElement = document.getElementById('request-status');
+
         if (value) {
-            let classList = ''; 
-            if(value === RequestStatus.Failed) {
+            let classList = '';
+            if (value === RequestStatus.Failed) {
                 classList = 'text-danger';
             } else if (value === RequestStatus.Completed) {
                 classList = 'text-success';
             }
-            
+
             value === RequestStatus.Failed ? 'text-danger' : '';
             requestStatusTextElement.innerHTML = `Request Status: <span class="${classList}" id="request-status">${value}</span>`
         } else {
@@ -107,11 +90,13 @@ export class UiController {
     }
 
     setConnectionStatus(value) {
-        connectionStatus.innerHTML = value;
-        if (value === 'Connected') {
-            connectionStatus.classList = 'badge badge-success';
+        const connectionStatusElement = document.getElementById('connection-status');
+
+        connectionStatusElement.innerHTML = value;
+        if (value === ConnectionStatus.Connected) {
+            connectionStatusElement.classList = 'badge bg-success';
         } else {
-            connectionStatus.classList = 'badge badge-danger'
+            connectionStatusElement.classList = 'badge bg-danger'
         }
     }
 
@@ -128,15 +113,15 @@ export class UiController {
     }
 
     onCreateRequestClick(handler) {
-        createRequestBtnElement.addEventListener('click', handler)
+        document.getElementById('btn-create-request').addEventListener('click', handler)
     }
 
     onCloseRequestClick(handler) {
-        closeRequestBtnElement.addEventListener('click', handler)
+        document.getElementById('btn-close-request').addEventListener('click', handler)
     }
 
     onClearEditorsClick(handler) {
-        clearEditorsBtnElement.addEventListener('click', handler)
+        document.getElementById('btn-clear-editors').addEventListener('click', handler)
     }
 
     onSelectedRequestChanged(handler) {
@@ -151,7 +136,7 @@ export class UiController {
     }
 
     onInitLibraryClick(handler) {
-        initLibraryBtn.addEventListener('click', handler)
+        document.getElementById('init-library-btn').addEventListener('click', handler)
     }
 
     getMethodPrefixInputValue() {

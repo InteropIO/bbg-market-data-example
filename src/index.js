@@ -15,18 +15,25 @@ let unsubscribeRequestEvents;
 let uiController;
 let selectedExampleConfig
 
-// Entry point.
-window.addEventListener('DOMContentLoaded', main);
-
-async function main() {
+const main = async () => {
   uiController = new UiController();
-  uiController.init();
+
+  uiController.init({
+    libConfig: {
+      debug: false,
+      logLevel: 'info',
+      sessionSettings: {
+        options: undefined,
+        identityOptions: undefined
+      }
+    }
+  });
 
   uiController.setAppVersion(`App Version: ${pkg.version}`);
 
   await initializeIOConnect();
 
-  uiController.setIOConnectVersion(`IO Connect Version: ${io.info.version}`)
+  uiController.setIOConnectVersion(`IO Connect JS Version: ${io.info.version}`);
 
   const requestsSelectOptions = exampleConfigs.map(({ title }) => ({ text: title, value: title }));
   uiController.setRequestsSelectOptions(requestsSelectOptions);
@@ -42,13 +49,7 @@ async function main() {
   uiController.onClearEditorsClick(clearEditorsClickHandler);
 }
 
-function clearEditorsClickHandler() {
-  uiController.setRequestResponseEditorValue({});
-  uiController.setRequestErrorEditorValue({});
-  uiController.setRequestBloombergEventEditorValue({});
-}
-
-function initLibraryBtnClickHandler() {
+const initLibraryBtnClickHandler = () => {
   uiController.hideInitLibraryView();
 
   uiController.showRequestExecuteView();
@@ -58,29 +59,32 @@ function initLibraryBtnClickHandler() {
 
   initializeBBGMarketData(io, libConfig, methodNamePrefix);
 
-  uiController.setBbgMarketDataVersion(`BBG Market Data Version: ${bbgMarketData.version}`)
+  uiController.setBbgMarketDataVersion(`BBG Market Data JS Version: ${bbgMarketData.version}`)
 
   subscribeToConnectionStatus();
 
-  initializeInstrumentListSearchProvider(io, bbgMarketData);
+  initializeInstrumentListSearchProvider(io, bbgMarketData).catch(console.error);
 }
 
-function subscribeToConnectionStatus() {
+const subscribeToConnectionStatus = () => {
   bbgMarketData.onConnectionStatusChanged((status) => {
     uiController.setConnectionStatus(status);
   });
 }
 
-async function initializeIOConnect() {
+const initializeIOConnect = async () => {
   io = await IOConnectDesktop();
+
   await IOSearch(io).catch(console.error);
+
   window.io = io;
 }
 
-function initializeBBGMarketData(io, config, methodNamePrefix) {
+const initializeBBGMarketData = (io, config, methodNamePrefix) => {
+
   const overrideProtocolMethods = (defaultMethods) => {
     const withMethodNamePrefix = (name) => {
-      const [t42, mdfApi, actionName] = name.split('.');
+      const [t42, mdfApi, actionName] = name.split('.'); // e.g. T42.MdfApi.CreateRequest
       return `${t42}.${mdfApi}.${methodNamePrefix}${actionName}`;
     }
 
@@ -98,14 +102,19 @@ function initializeBBGMarketData(io, config, methodNamePrefix) {
     return overrides;
   };
 
+  // An example of initializing the library with a custom logger.
+  const bbgMarketDataLogger = io.logger.subLogger('bbg-market-data-lib');
+  bbgMarketDataLogger.consoleLevel('info');
+
   bbgMarketData = BBGMarketData(io.interop, {
     ...config,
+    logger: bbgMarketDataLogger,
     overrideProtocolMethods
   });
   window.bbgMarketData = bbgMarketData;
 }
 
-function selectedRequestChangedHandler(value) {
+const selectedRequestChangedHandler = (value) => {
   selectedExampleConfig = exampleConfigs.find(({ title }) => title === value);
   if (selectedExampleConfig) {
     uiController.setRequestArgsEditorValue(selectedExampleConfig.requestArguments)
@@ -114,13 +123,7 @@ function selectedRequestChangedHandler(value) {
   }
 }
 
-async function closeRequestBtnClickHandler() {
-  if (executedRequest != null) {
-    executedRequest.close();
-  }
-}
-
-async function createRequestBtnClickHandler() {
+const createRequestBtnClickHandler = () => {
   if (!selectedExampleConfig) {
     return;
   }
@@ -131,7 +134,7 @@ async function createRequestBtnClickHandler() {
   }
 
   if (typeof unsubscribeRequestEvents === 'function') {
-    // Making sure to not receive event (data, error, bbg event) from an old request. 
+    // Making sure to not display events (data, error, bbg event) from an old request. 
     unsubscribeRequestEvents();
   }
 
@@ -139,7 +142,7 @@ async function createRequestBtnClickHandler() {
 
   const aggregateResponse = uiController.aggregateResponseChecked();
 
-  const eventDispatcher = {
+  const eventsHandler = {
     onRequestData: (data) => {
       if (aggregateResponse) {
         console.log('Aggregated Response: ', data);
@@ -166,7 +169,7 @@ async function createRequestBtnClickHandler() {
 
   const requestArgs = uiController.getRequestArgsEditorValue();
 
-  const { request, unsubscribeEvents } = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventDispatcher, aggregateResponse);
+  const { request, unsubscribeEvents } = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventsHandler, aggregateResponse);
 
   uiController.setRequestID(request.id);
 
@@ -176,3 +179,18 @@ async function createRequestBtnClickHandler() {
   window.executedRequest = request;
   window.unsubscribeRequestEvents = unsubscribeEvents;
 }
+
+const closeRequestBtnClickHandler = () => {
+  if (executedRequest != null) {
+    executedRequest.close();
+  }
+}
+
+const clearEditorsClickHandler = () => {
+  uiController.setRequestResponseEditorValue({});
+  uiController.setRequestErrorEditorValue({});
+  uiController.setRequestBloombergEventEditorValue({});
+}
+
+// Entry point.
+window.addEventListener('DOMContentLoaded', main);

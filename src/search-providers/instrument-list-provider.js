@@ -1,6 +1,11 @@
 export const initializeInstrumentListSearchProvider = async (io, bbgMarketData) => {
     console.log('Instrument List Search Provider starting...');
 
+    if (io.search == null) {
+        console.warn('IO Search API is not initialized.');
+        return;
+    }
+
     const requestPerQuery = new Map();
 
     const searchProvider = await io.search.registerProvider({
