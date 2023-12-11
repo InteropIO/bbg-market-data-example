@@ -39,6 +39,13 @@ jobs:
       working-directory: ./tester-app
       run: npm run build --if-present
 
+    - name: Git configuration
+      run: |
+        git config user.email "<>"
+        git config user.name "${GH_USERNAME}"
+      env:
+        GH_USERNAME: ${{ github.actor }}
+
     - name: Commit package.json and package-lock.json /dist
       working-directory: ./tester-app
       run: |
