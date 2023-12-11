@@ -1,0 +1,13 @@
+[
+  {
+    "title": "BBG Market Data Tester App",
+    "type": "window",
+    "name": "bbg-market-data-tester-app",
+    "details": {
+      "url": "http://localhost:3000",
+      "startLocation": "center",
+      "width": 800,
+      "height": 600
+    }
+  }
+]
