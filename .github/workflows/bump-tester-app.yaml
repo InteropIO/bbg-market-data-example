@@ -24,6 +24,7 @@ jobs:
       with:
         node-version: '16.x'
         cache: 'npm'
+        cache-dependency-path: ./tester-app/package-lock.json
     
     - name: Install NPM dependencies
       working-directory: ./tester-app
