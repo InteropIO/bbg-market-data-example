@@ -6,9 +6,6 @@ on:
 jobs:
   bump:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./tester-app
     steps:
     - name: Branch check
       run: |
@@ -29,16 +26,20 @@ jobs:
         cache: 'npm'
     
     - name: Install NPM dependencies
+      working-directory: ./tester-app
       run: npm ci
 
     - name: Bump app version
+      working-directory: ./tester-app
       run: |
         echo "NEW_VERSION=$(npm --no-git-tag-version version minor)" >> $GITHUB_ENV
     
     - name: Build
+      working-directory: ./tester-app
       run: npm run build --if-present
 
     - name: Commit package.json and package-lock.json /dist
+      working-directory: ./tester-app
       run: |
         git add "package.json"
         git add "package-lock.json"
