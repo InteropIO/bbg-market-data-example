@@ -2,7 +2,7 @@ const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventsHandl
     const request = requestFactory(requestArgs);
 
     const unsubscribeOnData = request.onData(function handleData({ data, isLast }) {
-        if(!aggregateResponse) {
+        if (!aggregateResponse) {
             eventsHandler.onRequestData(data)
         }
     })
@@ -36,6 +36,9 @@ const createNonSubscriptionRequest = ({ requestFactory, requestArgs, eventsHandl
             })
     } else {
         request.open({ aggregateResponse: false })
+            .catch(function handleError(error) {
+                eventsHandler.onRequestError(error);
+            })
     }
 
     return {
