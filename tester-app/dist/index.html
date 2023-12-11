@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark vh-100 d-flex">
+
+<head>
+  <meta charset="UTF-8" http-equiv="CACHE-CONTROL" content="NO-CACHE" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>JS BBG Market Data Tester App</title>
+<script defer src="main.2a7c5a42929bf4115779.js"></script></head>
+
+<body class="container-fluid flex-grow-1 d-flex flex-column overflow-auto mt-3">
+
+  <div id="initialize-library-view">
+    <h3>Initialization Settings</h3>
+    <div class="card">
+      <div class="card-body">
+        <p class="card-text">
+          Use the below form if you need to use non-default initialization settings for the bbg-market-data
+          library, including session options, session identity options or overriding protocol methods.
+        </p>
+        <p class="card-text">
+          Click the "Initialize Library" button to continue.
+        </p>
+        <div class="form-group">
+          <label for="protocol-methods-prefix">Protocol Methods Prefix</label>
+          <input class="form-control" id="protocol-methods-prefix" placeholder="Enter prefix">
+          <small class="form-text text-muted">A string to be inserted at the default protocol methods names, e.g. if you
+            enter "Mock" then "T42.MdfApi.CreateRequest" becomes "T42.MdfApi.MockCreateRequest".</small> <small
+            class="text-warning text-underline">Leave blank unless you have configured the Bloomberg Adapter
+            appropriately.</small>
+        </div>
+        <div class="form-group">
+          <label>Library Config</label>
+          <div id="lib-config-editor" class="h-100"></div>
+        </div>
+        <button id="init-library-btn" class="btn btn-primary">Initialize Library</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="execute-requests-view" style="display: none;">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <form action="">
+              <div class="form-group">
+                <label for="request-type" class="mr-2">Pick a request:</label>
+                <select id="request-type" class="form-control"></select>
+              </div>
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="aggregate-response-check">
+                <label class="form-check-label" for="aggregate-response-check">Aggregate Response (only applicable for
+                  non-subscription requests, see aggregated response also in DevTools -> Console)</label>
+              </div>
+              <button type="button" id="btn-create-request" class="btn btn-secondary ml-2">Create Request</button>
+              <button type="button" id="btn-close-request" class="btn btn-secondary ml-2">Close Request</button>
+              <button type="button" id="btn-clear-editors" class="btn btn-secondary ml-2">Clear Editors</button>
+              <button type="button" class="btn btn-secondary ml-2"
+                onclick="window.location.reload()">Re-initialize Library</button>
+            </form>
+            <p class="mt-2 card-text">
+            <h5>MDF Connection Status: <span id="connection-status" class="badge badge-danger"></span></h5>
+            </p>
+            <p id="request-description" class="card-text"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-2 h-50">
+      <div class="col-6">
+        <div class="d-flex justify-content-between">
+          <h5>Request Arguments:</h5>
+          <h5 id="request-id">
+          </h5>
+        </div>
+        <div id="jsoneditor-request-args" class="h-100"></div>
+      </div>
+      <div class="col-6">
+        <div class="d-flex justify-content-between">
+          <h5>Response:</h5>
+          <h5 id="request-status">
+          </h5>
+        </div>
+
+        <div id="jsoneditor-response" class="h-100"></div>
+      </div>
+    </div>
+    <div class="row mt-5 h-50">
+      <div class="col-6">
+        <h5>Error:</h5>
+        <div id="jsoneditor-error" class="h-100"></div>
+      </div>
+      <div class="col-6">
+        <h5>Bloomberg Event:</h5>
+        <div id="jsoneditor-events" class="h-100"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer fixed-bottom navbar-light bg-light d-flex p-2">
+    <div id="app-version"></div>&nbsp; | &nbsp;
+    <div id="io-connect-version"></div>&nbsp; | &nbsp;
+    <div id="bbg-market-data-version"></div>
+  </div>
+</body>
+
+</html>
