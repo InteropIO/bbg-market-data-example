@@ -188,6 +188,25 @@ export const configs = [
         })
     },
     {
+        title: 'Intraday Tick Request',
+        description: 'Demonstrates how to create and execute an Intraday Tick request.',
+        requestArguments: {
+            'startDateTime': '2019-02-01',
+            'endDateTime': '2019-12-10',
+            'eventTypes': ['TRADE'],
+            'maxDataPoints': 100,
+            'returnEids': true,
+            'interval': 60,
+            'security': 'IBM US Equity',
+        },
+        createRequest: (bbgMarketData, requestArgs, eventsHandler, aggregateResponse) => createNonSubscriptionRequest({
+            requestFactory: bbgMarketData.createIntraDayTickRequest,
+            requestArgs,
+            eventsHandler,
+            aggregateResponse
+        })
+    },
+    {
         title: 'Reference Data Request',
         description: 'Demonstrates how to create and execute an Reference Data request.',
         requestArguments: {
