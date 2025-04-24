@@ -117,7 +117,11 @@ const initializeBBGMarketData = (io, config, methodNamePrefix) => {
 const selectedRequestChangedHandler = (value) => {
   selectedExampleConfig = exampleConfigs.find(({ title }) => title === value);
   if (selectedExampleConfig) {
-    uiController.setRequestArgsEditorValue(selectedExampleConfig.requestArguments)
+    const value = {
+      args: selectedExampleConfig.requestArguments,
+      settings: selectedExampleConfig.requestSettings || {}
+    };
+    uiController.setRequestParamsEditorValue(value)
 
     uiController.setRequestDescription(selectedExampleConfig.description)
   }
@@ -167,9 +171,9 @@ const createRequestBtnClickHandler = () => {
     }
   }
 
-  const requestArgs = uiController.getRequestArgsEditorValue();
+  const { args, settings } = uiController.getRequestParamsEditorValue();
 
-  const { request, unsubscribeEvents } = selectedExampleConfig.createRequest(window.bbgMarketData, requestArgs, eventsHandler, aggregateResponse);
+  const { request, unsubscribeEvents } = selectedExampleConfig.createRequest(window.bbgMarketData, args, settings, eventsHandler, aggregateResponse);
 
   uiController.setRequestID(request.id);
 

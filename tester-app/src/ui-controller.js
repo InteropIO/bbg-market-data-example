@@ -43,11 +43,11 @@ export class UiController {
         document.getElementById('execute-requests-view').style.display = 'block';
     }
 
-    getRequestArgsEditorValue() {
+    getRequestParamsEditorValue() {
         return requestArgsEditor.get()
     }
 
-    setRequestArgsEditorValue(value) {
+    setRequestParamsEditorValue(value) {
         requestArgsEditor.set(value)
     }
 
