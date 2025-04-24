@@ -32,6 +32,7 @@ export const initializeInstrumentListSearchProvider = async (io, bbgMarketData) 
                         displayName: 'Bloomberg Instrument Details'
                     },
                     id: security, // ?? Not sure.
+					displayName: security,
                     description: description
                 });
             }
