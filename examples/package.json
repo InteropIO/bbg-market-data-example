@@ -9,7 +9,7 @@
   "author": "Tick42",
   "license": "ISC",
   "dependencies": {
-    "@glue42/bbg-market-data": "^0.8.0",
+    "@glue42/bbg-market-data": "^0.8.1",
     "@interopio/desktop": "^6.0.2"
   }
 }
